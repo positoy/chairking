@@ -1,6 +1,11 @@
+# 설치
+
+
 # 시스템
+- mongo : DB 접속
 - show tables : 콜렉션조회
-- 
+- db.users.count() : collection의 document 수 조회
+
 
 
 

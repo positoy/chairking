@@ -22,6 +22,8 @@ var tcpServer = require('net').createServer(function(socket) {
             var sensorData = JSON.parse(data.trim().toString());
             console.log( sensorData );
 
+            // save mongoDB
+
        } catch (e) {
             console.log("data dropped (not json)");
        }
