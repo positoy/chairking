@@ -1,7 +1,13 @@
 //
+// General
+var fs = require('fs');
+
+//
 // DB (mongoDB)
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
+var ObjectId = require('mongodb').objectID;
+var url = 'mongodb://localhost:27017/test';
 
 //
 // TCP
@@ -18,6 +24,7 @@ var tcpServer = require('net').createServer(function(socket) {
 
         try {
             JSON.parse(data.trim().toString())
+            console.log('json format valid');
  
             var sensorData = JSON.parse(data.trim().toString());
             console.log( sensorData );
@@ -55,6 +62,44 @@ app.use(express.static('public'));
 
 app.get('/', function (req, res) {
     res.send('Hello World!');
+});
+
+app.get('/dash', function(req, res) {
+    fs.readFile('./public/dashboard.code', function (err, data) {
+
+        if (err) throw err;
+
+        console.log("a user connected to /dash");
+
+        var htmldoc = data.toString();
+
+        // access DB : attach json data here
+        var dbObject = [];
+        var findDash = function(db, callback) {
+            var cursor = db.collection('dash').find();
+            cursor.each(function(err, doc) {
+                assert.equal(err, null);
+                if (doc != null) {
+                    dbObject.push(doc);
+                } else {
+                    htmldoc = htmldoc + "<script> var freqData = "
+                        + JSON.stringify(dbObject)
+                        + "; dashboard('#dashboard', freqData); </script>";
+
+                    res.send(htmldoc);
+                    callback();
+                }
+            });
+        };
+
+        MongoClient.connect(url, function(err, db) {
+            assert.equal(null, err);
+            findDash(db, function() {
+                db.close();
+            });
+        });
+            
+    });
 });
 
 var httpServer = app.listen(3000, function () {
